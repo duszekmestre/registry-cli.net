@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "registry-cli": {
+      "commandName": "Project"
+    }
+  }
+}
