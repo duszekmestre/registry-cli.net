@@ -1,6 +1,7 @@
 ﻿using CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using registry_cli.Services;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace registry_cli
@@ -12,6 +13,8 @@ namespace registry_cli
             await Parser.Default.ParseArguments<RegistryCliOptions>(args)
                 .WithParsedAsync(async options =>
                 {
+                    Debugger.Launch();
+
                     ServiceProvider container = ContainerBuilder.Create().Setup(options).Build();
 
                     IRegistryService registryService = container.GetRequiredService<IRegistryService>();

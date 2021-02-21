@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -14,10 +15,15 @@ namespace registry_cli.Infrastructure
         private const string ACCEPT_HEADER = "application/vnd.docker.distribution.manifest.v2+json";
 
         private readonly HttpClient httpClient;
+        private readonly ILogger<RegistryApiClient> logger;
 
-        public RegistryApiClient(HttpClient httpClient)
+        public RegistryApiClient(
+            HttpClient httpClient,
+            ILogger<RegistryApiClient> logger
+        )
         {
             this.httpClient = httpClient;
+            this.logger = logger;
         }
 
         public async Task<bool> DeleteTagAsync(string imageName, string tagDigest)
@@ -26,11 +32,9 @@ namespace registry_cli.Infrastructure
 
             if (response.IsSuccessStatusCode)
             {
-                Console.WriteLine("DONE");
                 return true;
             }
 
-            Console.WriteLine($"ERROR: [{response.StatusCode}] (hint: You might want to set REGISTRY_STORAGE_DELETE_ENABLED: \"true\" in your registry)");
             return false;
         }
 
@@ -110,6 +114,11 @@ namespace registry_cli.Infrastructure
             request.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue(accept));
 
             HttpResponseMessage response = await this.httpClient.SendAsync(request);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                logger.LogError("Error during registry communication. Status code: {httpStatusCode}. Request path: {method} {path}", response.StatusCode, request.Method, request.RequestUri);
+            }
 
             return response;
         }
