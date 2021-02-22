@@ -14,7 +14,7 @@ namespace registry_cli
         [Option("delete", Default = false, HelpText = "Whether to delete images")]
         public bool Delete { get; set; }
 
-        [Option("image", HelpText = "Image name")]
+        [Option('i', "image", HelpText = "Image name")]
         public string ImageName { get; set; }
 
         [Option("images-like", HelpText = "Images filter")]
