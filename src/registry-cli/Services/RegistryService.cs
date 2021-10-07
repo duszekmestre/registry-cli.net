@@ -71,7 +71,7 @@ namespace registry_cli.Services
 
             return tagsDate
                 .Where(x => x.DateTime != null)
-                .OrderBy(x => x.DateTime.Value)
+                .OrderByDescending(x => x.DateTime.Value)
                 .Select(x => x.Tag);
         }
 
