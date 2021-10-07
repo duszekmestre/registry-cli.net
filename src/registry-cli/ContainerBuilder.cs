@@ -23,30 +23,38 @@ namespace registry_cli
 
         internal ContainerBuilder Setup(RegistryCliOptions options)
         {
-            services.AddLogging(cfg => cfg
-                .AddConsole(opt =>
-                {
-                    
-                })
-                .AddFilter((category, level) =>
-                {
-                    if (category.StartsWith("System.Net.Http.HttpClient"))
-                    {
-                        return (int)level >= (int)LogLevel.Warning;
-                    }
-
-                    return true;
-                })
+            this.services.AddLogging(cfg => cfg
+                .AddSimpleConsole(opt => ConfigureConsoleLogging(opt))
+                .AddFilter((category, level) => FilterLoggingMessages(category, level))
             );
 
             services.AddTransient<IRegistryService, RegistryService>();
 
-            services.AddHttpClient<IRegistryApiClient, RegistryApiClient>(client =>
-            {
-                client.BaseAddress = new System.Uri(options.Hostname);
-            });
+            this.services.AddHttpClient<IRegistryApiClient, RegistryApiClient>(client => ConfigureRegistryApiClient(client, options));
 
             return this;
+        }
+
+        private static void ConfigureConsoleLogging(Microsoft.Extensions.Logging.Console.SimpleConsoleFormatterOptions opt)
+        {
+            opt.IncludeScopes = true;
+            opt.SingleLine = false;
+            opt.TimestampFormat = "hh:mm:ss ";
+        }
+
+        private static bool FilterLoggingMessages(string category, LogLevel level)
+        {
+            if (category.StartsWith("System.Net.Http.HttpClient"))
+            {
+                return (int)level >= (int)LogLevel.Warning;
+            }
+
+            return true;
+        }
+
+        private static void ConfigureRegistryApiClient(System.Net.Http.HttpClient client, RegistryCliOptions options)
+        {
+            client.BaseAddress = new System.Uri(options.Hostname);
         }
 
         internal ServiceProvider Build()

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using registry_cli.Extensions;
 using registry_cli.Infrastructure;
 using System;
 using System.Collections.Generic;
@@ -39,7 +40,7 @@ namespace registry_cli.Services
                 imageList = await registry.ListImagesAsync();
             }
 
-            imageList = FilterList(options.ImageFilter, imageList);
+            imageList = imageList.FilterCollection(options.ImageFilter);
 
             foreach (string imageName in imageList)
             {
@@ -54,7 +55,7 @@ namespace registry_cli.Services
                 }
 
                 logger.LogDebug("Found {allTagsCount} tags for image {imageName}", allTagsList.Count, imageName);
-                IEnumerable<string> filteredTagsList = FilterList(options.TagsFilter, allTagsList);
+                IEnumerable<string> filteredTagsList = allTagsList.FilterCollection(options.TagsFilter);
                 
                 logger.LogDebug("Filtered tags count: {filteredCount}", filteredTagsList.Count());
 
@@ -62,17 +63,6 @@ namespace registry_cli.Services
 
                 await DeleteTagsAsync(imageName, orderedTagsList, options.KeepLastVersions, options.DryRun);
             }
-        }
-
-        private IEnumerable<string> FilterList(IEnumerable<string> filters, IEnumerable<string> list)
-        {
-            if (filters?.Any() == true)
-            {
-                List<Regex> re = filters.Select(filter => new Regex(filter)).ToList();
-                return list.Where(item => re.Any(r => r.IsMatch(item)));
-            }
-
-            return list;
         }
 
         private async Task<IEnumerable<string>> GetOrderedTagsAsync(string imageName, IEnumerable<string> allTagsList)
